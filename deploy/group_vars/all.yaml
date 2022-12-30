@@ -1,0 +1,2 @@
+telegram_api_token: "{{ lookup('env', 'TELEGRAM_API_TOKEN') }}"
+openai_api_key: "{{ lookup('env', 'OPENAI_API_TOKEN') }}"

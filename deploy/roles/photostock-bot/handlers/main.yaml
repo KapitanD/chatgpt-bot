@@ -1,0 +1,7 @@
+---
+- name: restart bot
+  service:
+    name: bot
+    state: restarted
+    enabled: yes
+  ignore_errors: "{{ ansible_check_mode }}"

@@ -1,0 +1,94 @@
+import os
+import requests
+import openai
+import replicate
+
+from telegram.ext import Updater, CommandHandler
+
+# Replace TOKEN with your bot's token
+TOKEN = "{{ telegram_api_token }}"
+
+openai.api_key = "{{ openai_api_key }}"
+
+# Create an Updater object to handle updates from Telegram
+updater = Updater(TOKEN, use_context=True)
+dispatcher = updater.dispatcher
+
+def chatgpt(update, context):
+    text = update.message.text
+    
+    response = openai.Completion.create(
+        model="text-davinci-003",
+        prompt=text,
+        temperature=0,
+        max_tokens=100,
+        top_p=1,
+        frequency_penalty=0.0,
+        presence_penalty=0.0,
+        stop=["\n"]
+    )
+
+    # Extract the response text from the API response
+    response_text = response["choices"][0]["text"]
+
+    context.bot.send_message(chat_id=update.effective_chat.id, text=response_text)
+
+def start(update, context):
+    # Print a message to the user when they start the bot
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Hello! I am a bot that generates images for any queries. Just send me a message with your query and I will try to find an image for you.")
+
+def help(update, context):
+    # Print help message
+    text = """/start - print start message
+/help - print this message
+/image text - generate image from text
+    """
+    context.bot.send_message(chat_id=update.effective_chat.id, text=text)
+
+def image(update, context):
+    # Get the message text
+    query = update.message.text
+
+    # Use the DALL-E API to generate an image for the query
+    api_key = "{{ openai_api_key }}"
+    endpoint = "https://api.openai.com/v1/images/generations"
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {api_key}"}
+    data = """
+    {
+        """
+    data += f'"model": "image-alpha-001",'
+    data += f'"prompt": "{query}",'
+    data += """
+        "num_images":1,
+        "size":"256x256",
+        "response_format":"url"
+    }
+    """
+
+    response = requests.post(endpoint, headers=headers, data=data)
+    if response.status_code == 200:
+        image_url = response.json()["data"][0]["url"]
+        # Send the generated image to the user
+        context.bot.send_photo(chat_id=update.effective_chat.id, photo=image_url)
+    else:
+        # Print an error message if there was a problem with the request
+        context.bot.send_message(chat_id=update.effective_chat.id, text="Sorry, there was an error generating the image. Please try again.")
+
+# Add a command handler for the /start command
+start_handler = CommandHandler("start", start)
+dispatcher.add_handler(start_handler)
+
+# Add a command handler for the /help command
+help_handler = CommandHandler("help", help)
+dispatcher.add_handler(help_handler)
+
+# Add a command handler for the /chatgpt command
+chatgpt_handler = CommandHandler("chatgpt", chatgpt)
+dispatcher.add_handler(chatgpt_handler)
+
+# Add a message handler for all other messages
+image_handler = CommandHandler("image", image)
+dispatcher.add_handler(image_handler)
+
+# Start the bot
+updater.start_polling()

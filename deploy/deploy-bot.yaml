@@ -1,0 +1,7 @@
+---
+- name: "bot server"
+  hosts:
+    - bot-server-1
+  become: true
+  roles:
+    - {role: 'photostock-bot', tags: dns}

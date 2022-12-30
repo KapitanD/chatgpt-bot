@@ -1,0 +1,14 @@
+[Unit]
+Description=PhotoStockBot
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=bot
+WorkingDirectory={{ bot_folder_path }}
+ExecStart=/usr/bin/python3 {{ (bot_folder_path, bot_file_name) | path_join }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
