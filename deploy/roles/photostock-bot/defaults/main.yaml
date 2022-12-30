@@ -1,4 +1,5 @@
 telegram_api_token: EMPTY
 openai_api_key: EMPTY
+replicate_api_token: EMPTY
 bot_folder_path: /home/bot/photostockbot
 bot_file_name: bot.py

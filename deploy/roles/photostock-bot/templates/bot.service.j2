@@ -9,6 +9,9 @@ User=bot
 WorkingDirectory={{ bot_folder_path }}
 ExecStart=/usr/bin/python3 {{ (bot_folder_path, bot_file_name) | path_join }}
 Restart=always
+Environment="REPLICATE_API_TOKEN={{ replicate_api_token }}"
+Environment="OPENAI_API_TOKEN={{ openai_api_key }}"
+Environment="TELEGRAM_API_TOKEN"={{ telegram_api_token }}
 
 [Install]
 WantedBy=multi-user.target
