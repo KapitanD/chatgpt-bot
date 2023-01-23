@@ -1,4 +1,5 @@
 import os
+import time
 
 import telebot
 import openai
@@ -31,16 +32,18 @@ def verify_subscription(bot: telebot.TeleBot):
     return decorator_verify
 
 def get_gpt_response(prompt):
+    print("try to get resp from chatgpt")
     response = openai.Completion.create(
         model="text-davinci-003",
         prompt=prompt,
         temperature=0.5,
-        max_tokens=1000,
+        max_tokens=2048,
         top_p=1.0,
         frequency_penalty=0.5,
         presence_penalty=0.0,
     )
 
+    print(f"response: {response}")
     return response["choices"][0]["text"]
 
 @bot.message_handler(commands=['start'])
@@ -68,6 +71,7 @@ def image(message):
     if message.chat.type == 'private':
         bot.send_chat_action(message.chat.id, ChatAction.UPLOAD_PHOTO)
         response = image_gen_version.predict(prompt=message.text)
+        bot.send_chat_action(message.chat.id, ChatAction.UPLOAD_PHOTO)
 
         if len(response) != 0:
             image_url = response[0]
@@ -80,7 +84,18 @@ def image(message):
 @bot.message_handler()
 @verify_subscription(bot)
 def chat(message):
+    print(f"get message {message.text}")
+    bot.send_chat_action(message.chat.id, ChatAction.TYPING)
     response_text = get_gpt_response(message.text)
-    bot.send_message(message.chat.id, response_text)
+    print(f"get response {response_text}")
+    bot.send_chat_action(message.chat.id, ChatAction.TYPING)
+    if len(response_text) == 0 or response_text == " ":
+        bot.send_message(message.chat.id, "empty message")
+    else:
+        bot.send_message(message.chat.id, response_text)
 
-bot.polling()
+while True:
+    try:
+        bot.polling()
+    except:
+        time.sleep(30)
